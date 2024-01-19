@@ -54,7 +54,7 @@ module serviceNameConfigurationValue 'configuration-value.bicep' = {
   scope: resourceGroup(integrationEnvironment.resourceGroup)
   params: {
     appConfigurationName: integrationEnvironment.appConfiguration
-    settingName: 'Services:GamesService'
+    settingName: 'Services:ScoresService'
     settingValue: apiContainerApp.name
   }
 }
