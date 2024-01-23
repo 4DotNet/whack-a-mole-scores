@@ -36,3 +36,16 @@ module configurationReaderRoleAssignment 'roleAssignment.bicep' = {
     roleDefinitionId: configurationDataReaderRole.id
   }
 }
+
+resource webPubSubServiceOwnerRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' existing = {
+  scope: resourceGroup(integrationResourceGroupName)
+  name: '12cf5a90-567b-43ae-8102-96cf46c7d9b4'
+}
+module webPubSubServiceOwnerRoleAssignment 'roleAssignment.bicep' = {
+  name: 'webPubSubServiceOwnerRoleAssignment'
+  scope: resourceGroup(integrationResourceGroupName)
+  params: {
+    principalId: containerAppPrincipalId
+    roleDefinitionId: webPubSubServiceOwnerRoleDefinition.id
+  }
+}
