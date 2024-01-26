@@ -75,7 +75,7 @@ public class ScoresRepository : IScoresRepository
         ILogger<ScoresRepository> logger)
     {
         _logger = logger;
-        var tableStorageUrl = $"https://{configuration.Value.UsersStorageAccountName}.table.core.windows.net";
+        var tableStorageUrl = $"https://{configuration.Value.ScoresStorageAccountName}.table.core.windows.net";
         _tableClient = new TableClient(new Uri(tableStorageUrl), TableName, CloudIdentity.GetCloudIdentity());
     }
 
