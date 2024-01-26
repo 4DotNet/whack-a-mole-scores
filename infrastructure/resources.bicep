@@ -45,7 +45,7 @@ module storageAccountConfigurationValue 'configuration-value.bicep' = {
   scope: resourceGroup(integrationEnvironment.resourceGroup)
   params: {
     appConfigurationName: integrationEnvironment.appConfiguration
-    settingName: 'AzureServices:GamesStorageAccountName'
+    settingName: 'AzureServices:ScoresStorageAccountName'
     settingValue: storageAccount.name
   }
 }
