@@ -22,7 +22,7 @@ param corsHostnames array
 var apiResourceGroupName = toLower('${systemName}-${environmentName}-${locationAbbreviation}')
 
 var storageAccountTables = [
-  'games'
+  'scores'
 ]
 
 resource apiResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {

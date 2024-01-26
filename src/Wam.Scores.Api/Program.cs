@@ -3,6 +3,7 @@ using Wam.Core.ExtensionMethods;
 using Wam.Core.Identity;
 using Wam.Scores.Api.Infrastructure;
 using Wam.Scores.Api.Infrastructure.Swagger;
+using Wam.Scores.ExtensionMethods;
 
 var corsPolicyName = "DefaultCors";
 var builder = WebApplication.CreateBuilder(args);
@@ -24,14 +25,20 @@ catch (Exception ex)
 // Add services to the container.
 
 builder.Services
-    .AddWamCoreConfiguration(builder.Configuration);
+    .AddWamCoreConfiguration(builder.Configuration)
+    .AddWamScoresModel();
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: corsPolicyName,
         policy =>
         {
-            policy.WithOrigins("http://localhost:4200", "https://app.tinylnk.nl")
+            policy.WithOrigins("https://wam.hexmaster.nl",
+                    "https://wadmin.hexmaster.nl",
+                    "https://wam-test.hexmaster.nl",
+                    "https://wadmin-test.hexmaster.nl",
+                    "https://mango-river-0dd954b03.4.azurestaticapps.net",
+                    "http://localhost:4200")
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials();
@@ -40,7 +47,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddControllers().AddNewtonsoftJson();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwagger("Whack-A-Mole Users API", enableSwagger: !builder.Environment.IsProduction());
+builder.Services.AddSwagger("Whack-A-Mole Scores API", enableSwagger: !builder.Environment.IsProduction());
 
 var app = builder.Build();
 
