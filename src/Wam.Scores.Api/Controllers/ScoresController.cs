@@ -1,20 +1,24 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Wam.Scores.DataTransferObjects;
+using Wam.Scores.Services;
 
-namespace Wam.Scores.Api.Controllers
+namespace Wam.Scores.Api.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class ScoresController(IScoresService scoresService) : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ScoresController : ControllerBase
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetGameScoreboard(Guid id, CancellationToken cancellationToken)
     {
+        var scoreBoard = await scoresService.Scoreboard(id, cancellationToken);
+        return Ok(scoreBoard);
+    }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateScore(ScoreCreateDto scoreCreateDto)
-        {
-            //var score = await _scoreService.CreateScore(scoreCreateDto);
-            //return CreatedAtAction(nameof(GetScore), new { id = score.Id }, score);
-            return await Task.FromResult( Created());
-        }
+    [HttpPost]
+    public async Task<IActionResult> CreateScore(ScoreCreateDto scoreCreateDto, CancellationToken cancellationToken)
+    {
+        var scoresStorageResult = await scoresService.StoreScores(scoreCreateDto, cancellationToken);
+        return Ok(scoresStorageResult);
     }
 }

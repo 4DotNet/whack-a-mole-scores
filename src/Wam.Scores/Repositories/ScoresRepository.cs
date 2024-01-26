@@ -1,9 +1,7 @@
 ﻿using Azure.Data.Tables;
-using HexMaster.RedisCache.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Threading;
-using Wam.Core.Cache;
+using Azure;
 using Wam.Core.Configuration;
 using Wam.Core.Identity;
 using Wam.Scores.DataTransferObjects;
@@ -36,6 +34,40 @@ public class ScoresRepository : IScoresRepository
         }
 
         return new ScoreBoardOverviewDto(gameId, players);
+    }
+
+    public async Task<ScorePersistenseResultDto> StoreScores(ScoreCreateDto dto, CancellationToken cancellationToken)
+    {
+        if (!dto.Scores.Any())
+        {
+            return new ScorePersistenseResultDto([]);
+        }
+
+        var transactions = new List<TableTransactionAction>();
+        foreach (var scoreDto in dto.Scores)
+        {
+            var scoreEntity = new ScoreEntity
+            {
+                PartitionKey = dto.GameId.ToString(),
+                RowKey = scoreDto.UniqueId,
+                PlayerId = scoreDto.PlayerId,
+                Score = scoreDto.Score,
+                Timestamp = scoreDto.CreatedOn,
+                ETag = ETag.All
+            };
+            transactions.Add(new TableTransactionAction(TableTransactionActionType.UpsertReplace, scoreEntity));
+        }
+
+        if (transactions.Any())
+        {
+            var response = await _tableClient.SubmitTransactionAsync(transactions, cancellationToken);
+            if (response.Value.Any(r => r.IsError))
+            {
+                throw new Exception($"Either one of the received scores for game {dto.GameId} was not succesfully saved.");
+            }
+        }
+
+        return new ScorePersistenseResultDto(dto.Scores.Select(d => d.UniqueId).ToList());
     }
 
     public ScoresRepository(
