@@ -5,15 +5,27 @@ using Wam.Scores.Repositories;
 
 namespace Wam.Scores.Services;
 
-public class ScoresService(IScoresRepository scoresRepository, ICacheClientFactory cacheClientFactory) : IScoresService
+public class ScoresService(
+    IScoresRepository scoresRepository, 
+    IGamesService    gamesService,
+    ICacheClientFactory cacheClientFactory) : IScoresService
 {
 
-    public Task<ScoreBoardOverviewDto> Scoreboard(Guid gameId, CancellationToken cancellationToken)
+    public async Task<ScoreBoardOverviewDto> Scoreboard(Guid gameId, CancellationToken cancellationToken)
     {
         var cacheKey = CacheName.GameScoreBoard(gameId);
         var cacheClient = cacheClientFactory.CreateClient();
-        return cacheClient.GetOrInitializeAsync(
-            () => scoresRepository.GetScoreBoardOverviewAsync(gameId, cancellationToken), cacheKey);
+        return await cacheClient.GetOrInitializeAsync(
+            () => GetScoreboardFromRepository(gameId, cancellationToken), cacheKey);
+    }
+
+    private async Task<ScoreBoardOverviewDto> GetScoreboardFromRepository(Guid gameId,
+        CancellationToken cancellationToken)
+    {
+        var gameDetails = await gamesService.GetGameDetails(gameId, cancellationToken);
+        var scoreBoard = await scoresRepository.GetScoreBoardOverviewAsync(gameId, gameDetails, cancellationToken);
+
+      return scoreBoard;
     }
 
     public Task<ScorePersistenseResultDto> StoreScores(

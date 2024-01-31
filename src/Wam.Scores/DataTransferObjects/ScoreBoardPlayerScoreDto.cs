@@ -1,3 +1,3 @@
 ﻿namespace Wam.Scores.DataTransferObjects;
 
-public record ScoreBoardPlayerScoreDto(Guid Id, int Score);
+public record ScoreBoardPlayerScoreDto(string Id, int Score);

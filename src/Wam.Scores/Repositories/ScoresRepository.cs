@@ -16,9 +16,9 @@ public class ScoresRepository : IScoresRepository
     private readonly TableClient _tableClient;
 
 
-    public async Task<ScoreBoardOverviewDto> GetScoreBoardOverviewAsync(Guid gameId, CancellationToken cancellationToken)
+    public async Task<ScoreBoardOverviewDto> GetScoreBoardOverviewAsync(Guid gameId, GameDetailsDto? gameDetails, CancellationToken cancellationToken)
     {
-        var query = _tableClient.QueryAsync<ScoreEntity>($"{nameof(ScoreEntity.PartitionKey)} eq {gameId}");
+        var query = _tableClient.QueryAsync<ScoreEntity>($"{nameof(ScoreEntity.PartitionKey)} eq '{gameId}'");
         var allScores = new List<ScoreEntity>();
         await foreach (var queryPage in query.AsPages().WithCancellation(cancellationToken))
         {
@@ -30,7 +30,12 @@ public class ScoresRepository : IScoresRepository
         var groupedScores = allScores.GroupBy(se => se.PlayerId, (key, group) => new { PlayerId = key, Scores = group.ToList() });
         foreach (var groupedScore in groupedScores)
         {
-            players.Add(new ScoreBoardPlayerDto(groupedScore.PlayerId, groupedScore.Scores.Select(s => new ScoreBoardPlayerScoreDto(Guid.Parse(s.RowKey), s.Score)).ToList()));
+            var player = gameDetails?.Players.FirstOrDefault(p => p.Id == groupedScore.PlayerId);
+
+            players.Add(new ScoreBoardPlayerDto(
+                groupedScore.PlayerId,
+                player?.DisplayName ?? "Unknown",
+                groupedScore.Scores.Select(s => new ScoreBoardPlayerScoreDto(s.RowKey, s.Score)).ToList()));
         }
 
         return new ScoreBoardOverviewDto(gameId, players);

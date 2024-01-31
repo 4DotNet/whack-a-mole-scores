@@ -4,6 +4,7 @@ using Wam.Core.Identity;
 using Wam.Scores.Api.Infrastructure;
 using Wam.Scores.Api.Infrastructure.Swagger;
 using Wam.Scores.ExtensionMethods;
+using Wam.Scores.Services;
 
 var corsPolicyName = "DefaultCors";
 var builder = WebApplication.CreateBuilder(args);
@@ -23,6 +24,10 @@ catch (Exception ex)
     throw new Exception("Failed to configure the Whack-A-Mole Users service, Azure App Configuration failed", ex);
 }
 // Add services to the container.
+
+builder.Services.AddHttpClient<IGamesService, GamesService>()
+    .AddStandardResilienceHandler();
+
 
 builder.Services
     .AddWamCoreConfiguration(builder.Configuration)
