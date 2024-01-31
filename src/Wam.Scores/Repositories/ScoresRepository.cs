@@ -38,7 +38,7 @@ public class ScoresRepository : IScoresRepository
                 groupedScore.Scores.Select(s => new ScoreBoardPlayerScoreDto(s.RowKey, s.Score)).ToList()));
         }
 
-        return new ScoreBoardOverviewDto(gameId, players);
+        return new ScoreBoardOverviewDto(gameId, players.OrderBy(plyr => plyr.AverageScore).ToList());
     }
 
     public async Task<ScorePersistenseResultDto> StoreScores(ScoreCreateDto dto, CancellationToken cancellationToken)

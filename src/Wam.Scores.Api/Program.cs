@@ -1,5 +1,6 @@
 using Wam.Core.Configuration;
 using Wam.Core.ExtensionMethods;
+using Wam.Core.Filters;
 using Wam.Core.Identity;
 using Wam.Scores.Api.Infrastructure;
 using Wam.Scores.Api.Infrastructure.Swagger;
@@ -50,7 +51,7 @@ builder.Services.AddCors(options =>
         });
 });
 
-builder.Services.AddControllers().AddNewtonsoftJson();
+builder.Services.AddControllers(options => options.Filters.Add(new WamExceptionFilter())).AddNewtonsoftJson();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwagger("Whack-A-Mole Scores API", enableSwagger: !builder.Environment.IsProduction());
 
