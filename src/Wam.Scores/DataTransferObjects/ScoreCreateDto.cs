@@ -1,3 +1,3 @@
 ﻿namespace Wam.Scores.DataTransferObjects;
 
-public record ScoreCreateDto(Guid GameId, List<ScoreDto> Scores);
+public record ScoreCreateDto(Guid GameId, string Code,List<ScoreDto> Scores);

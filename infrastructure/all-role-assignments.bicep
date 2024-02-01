@@ -41,8 +41,9 @@ resource webPubSubServiceOwnerRoleDefinition 'Microsoft.Authorization/roleDefini
   scope: resourceGroup(integrationResourceGroupName)
   name: '12cf5a90-567b-43ae-8102-96cf46c7d9b4'
 }
+
 module webPubSubServiceOwnerRoleAssignment 'roleAssignment.bicep' = {
-  name: 'webPubSubServiceOwnerRoleAssignment'
+  name: 'webPubSubServiceOwnerRoleAssignmentModule'
   scope: resourceGroup(integrationResourceGroupName)
   params: {
     principalId: containerAppPrincipalId
