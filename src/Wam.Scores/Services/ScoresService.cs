@@ -52,14 +52,13 @@ public class ScoresService(
     {
         if (dto.Scores.Any())
         {
-            var latestScore = dto.Scores.OrderByDescending(s => s.CreatedOn).First().Score;
-            var averageScore = dto.Scores.Average(s => s.Score);
+            var scores= dto.Scores.Select(s => s.Score).ToList();
             var playerId = dto.Scores.First().PlayerId;
 
             var message = new RealtimeEvent<PlayerIntermediateScoreDto>
             {
                 Message = "game-score-added",
-                Data = new PlayerIntermediateScoreDto(dto.GameId, dto.Code, playerId, latestScore, averageScore)
+                Data = new PlayerIntermediateScoreDto(dto.GameId, dto.Code, playerId, scores)
             };
             return RaiseEvent(message, dto.Code);
         }
