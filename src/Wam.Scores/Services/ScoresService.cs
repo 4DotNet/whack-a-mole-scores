@@ -1,29 +1,39 @@
 ﻿using Azure.Messaging.WebPubSub;
-using HexMaster.RedisCache.Abstractions;
 using Microsoft.Extensions.Logging;
-using System.Numerics;
 using Azure.Core;
 using Wam.Core.Cache;
 using Wam.Core.Events;
 using Wam.Scores.DataTransferObjects;
 using Wam.Scores.Repositories;
+using Dapr.Client;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Wam.Scores.Services;
 
 public class ScoresService(
-    IScoresRepository scoresRepository, 
-    IGamesService    gamesService,
+    IScoresRepository scoresRepository,
+    IGamesService gamesService,
     WebPubSubServiceClient pubsubClient,
-    ICacheClientFactory cacheClientFactory,
+    DaprClient daprClient,
     ILogger<ScoresService> logger) : IScoresService
 {
+    private const string StateStoreName = "statestore";
 
-    public async Task<ScoreBoardOverviewDto> Scoreboard(Guid gameId, CancellationToken cancellationToken)
+    public Task<ScoreBoardOverviewDto> Scoreboard(Guid gameId, CancellationToken cancellationToken)
     {
-        var cacheKey = CacheName.GameScoreBoard(gameId);
-        var cacheClient = cacheClientFactory.CreateClient();
-        return await cacheClient.GetOrInitializeAsync(
-            () => GetScoreboardFromRepository(gameId, cancellationToken), cacheKey);
+        return GetFromCacheOrRepository(gameId, cancellationToken);
+    }
+
+    private async Task<ScoreBoardOverviewDto> GetFromCacheOrRepository(Guid gameId, CancellationToken cancellationToken)
+    {
+        var stateStoreValue = await daprClient.GetStateAsync<ScoreBoardOverviewDto>(StateStoreName, CacheName.GameScoreBoard(gameId), cancellationToken: cancellationToken);
+        if (stateStoreValue is not null)
+        {
+            return stateStoreValue;
+        }
+        var scoreBoard = await GetScoreboardFromRepository(gameId, cancellationToken);
+        await daprClient.SaveStateAsync(StateStoreName, CacheName.GameScoreBoard(gameId), scoreBoard, cancellationToken: cancellationToken);
+        return scoreBoard;
     }
 
     private async Task<ScoreBoardOverviewDto> GetScoreboardFromRepository(Guid gameId,
@@ -32,14 +42,14 @@ public class ScoresService(
         var gameDetails = await gamesService.GetGameDetails(gameId, cancellationToken);
         var scoreBoard = await scoresRepository.GetScoreBoardOverviewAsync(gameId, gameDetails, cancellationToken);
 
-      return scoreBoard;
+        return scoreBoard;
     }
 
     public async Task<ScorePersistenseResultDto> StoreScores(
         ScoreCreateDto dto,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation("Processing {scoreCount} scores for game {gameId} ", dto.Scores.Count,  dto.GameId);
+        logger.LogInformation("Processing {scoreCount} scores for game {gameId} ", dto.Scores.Count, dto.GameId);
         var processedScores = await scoresRepository.StoreScores(dto, cancellationToken);
         if (processedScores.UniqueIds.Any())
         {
@@ -52,7 +62,7 @@ public class ScoresService(
     {
         if (dto.Scores.Any())
         {
-            var scores= dto.Scores.Select(s => s.Score).ToList();
+            var scores = dto.Scores.Select(s => s.Score).ToList();
             var playerId = dto.Scores.First().PlayerId;
 
             var message = new RealtimeEvent<PlayerIntermediateScoreDto>

@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Data.Tables" Version="12.8.2" />
-    <PackageReference Include="Wam.Core" Version="0.1.16" />
+    <PackageReference Include="Wam.Core" Version="0.2.1" />
   </ItemGroup>
 
 </Project>

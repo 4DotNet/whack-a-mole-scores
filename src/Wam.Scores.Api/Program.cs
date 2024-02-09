@@ -31,7 +31,7 @@ builder.Services.AddHttpClient<IGamesService, GamesService>()
 
 
 builder.Services
-    .AddWamCoreConfiguration(builder.Configuration)
+    .AddWamCoreConfiguration(builder.Configuration, daprAppId: nameof(ServicesConfiguration.ScoresService))
     .AddWamScoresModel();
 
 builder.Services.AddCors(options =>

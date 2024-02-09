@@ -93,7 +93,7 @@ resource apiContainerApp 'Microsoft.App/containerApps@2023-08-01-preview' = {
       dapr: {
         enabled: true
         appPort: containerPort
-        appId: containerAppName
+        appId: '${defaultResourceName}-aca'
       }
       secrets: [
         {
