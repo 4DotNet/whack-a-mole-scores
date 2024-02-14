@@ -7,6 +7,9 @@ using Wam.Scores.DataTransferObjects;
 using Wam.Scores.Repositories;
 using Dapr.Client;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
+using Microsoft.IdentityModel.Abstractions;
 
 namespace Wam.Scores.Services;
 
@@ -15,6 +18,7 @@ public class ScoresService(
     IGamesService gamesService,
     WebPubSubServiceClient pubsubClient,
     DaprClient daprClient,
+    TelemetryClient telemetry,
     ILogger<ScoresService> logger) : IScoresService
 {
     private const string StateStoreName = "statestore";
@@ -53,6 +57,7 @@ public class ScoresService(
         var processedScores = await scoresRepository.StoreScores(dto, cancellationToken);
         if (processedScores.UniqueIds.Any())
         {
+            TrackMetric(processedScores);
             await ScoreProcessedEvent(dto);
         }
         return processedScores;
@@ -85,6 +90,16 @@ public class ScoresService(
         {
             logger.LogError(ex, "Failed to raise event {event} to group {group}", realtimeEvent.Message, group);
         }
+    }
+
+    private void TrackMetric(ScorePersistenseResultDto persistedScores)
+    {
+        var whackedMoles = new MetricTelemetry
+        {
+            Name = "whackedMoles",
+            Sum = persistedScores.UniqueIds.Count
+        };
+        telemetry.TrackMetric(whackedMoles);
     }
 
 }
