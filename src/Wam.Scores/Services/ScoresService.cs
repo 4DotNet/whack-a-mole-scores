@@ -23,6 +23,13 @@ public class ScoresService(
 {
     private const string StateStoreName = "statestore";
 
+    private readonly Dictionary<string, string> defaultMetadata = new()
+    {
+        {
+            "ttlInSeconds", "900"
+        }
+    };
+
     public Task<ScoreBoardOverviewDto> Scoreboard(Guid gameId, CancellationToken cancellationToken)
     {
         return GetFromCacheOrRepository(gameId, cancellationToken);
@@ -36,7 +43,12 @@ public class ScoresService(
             return stateStoreValue;
         }
         var scoreBoard = await GetScoreboardFromRepository(gameId, cancellationToken);
-        await daprClient.SaveStateAsync(StateStoreName, CacheName.GameScoreBoard(gameId), scoreBoard, cancellationToken: cancellationToken);
+        await daprClient.SaveStateAsync(
+            StateStoreName, 
+            CacheName.GameScoreBoard(gameId), 
+            scoreBoard, 
+            metadata: defaultMetadata,
+            cancellationToken: cancellationToken);
         return scoreBoard;
     }
 
