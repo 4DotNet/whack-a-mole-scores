@@ -45,7 +45,7 @@ public class ScoresService(
     {
         var gameDetails = await gamesService.GetGameDetails(gameId, cancellationToken);
         var scoreBoard = await scoresRepository.GetScoreBoardOverviewAsync(gameId, gameDetails, cancellationToken);
-
+        await ScoreBoardProcessedEvent(gameDetails.Code, scoreBoard);
         return scoreBoard;
     }
 
@@ -76,6 +76,20 @@ public class ScoresService(
                 Data = new PlayerIntermediateScoreDto(dto.GameId, dto.Code, playerId, scores)
             };
             return RaiseEvent(message, dto.Code);
+        }
+        return Task.CompletedTask;
+    }
+
+    private Task ScoreBoardProcessedEvent(string code, ScoreBoardOverviewDto dto)
+    {
+        if (dto.Players.Any())
+        {
+            var message = new RealtimeEvent<ScoreBoardOverviewDto>
+            {
+                Message = "score-board-processed",
+                Data = dto
+            };
+            return RaiseEvent(message, code);
         }
         return Task.CompletedTask;
     }
