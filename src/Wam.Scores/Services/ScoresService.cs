@@ -1,4 +1,5 @@
-﻿using Azure.Messaging.WebPubSub;
+﻿using System.Diagnostics;
+using Azure.Messaging.WebPubSub;
 using Microsoft.Extensions.Logging;
 using Azure.Core;
 using Wam.Core.Cache;
@@ -6,10 +7,8 @@ using Wam.Core.Events;
 using Wam.Scores.DataTransferObjects;
 using Wam.Scores.Repositories;
 using Dapr.Client;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
-using Microsoft.IdentityModel.Abstractions;
 
 namespace Wam.Scores.Services;
 
@@ -26,7 +25,7 @@ public class ScoresService(
     private readonly Dictionary<string, string> defaultMetadata = new()
     {
         {
-            "ttlInSeconds", "900"
+            "ttlInSeconds", "300"
         }
     };
 
@@ -55,9 +54,12 @@ public class ScoresService(
     private async Task<ScoreBoardOverviewDto> GetScoreboardFromRepository(Guid gameId,
         CancellationToken cancellationToken)
     {
+        var sw = Stopwatch.StartNew();
         var gameDetails = await gamesService.GetGameDetails(gameId, cancellationToken);
         var scoreBoard = await scoresRepository.GetScoreBoardOverviewAsync(gameId, gameDetails, cancellationToken);
         await ScoreBoardProcessedEvent(gameDetails.Code, scoreBoard);
+        var elapsed = sw.ElapsedMilliseconds;
+        telemetry.TrackMetric("scoreboard-retrieval-time", elapsed);
         return scoreBoard;
     }
 
