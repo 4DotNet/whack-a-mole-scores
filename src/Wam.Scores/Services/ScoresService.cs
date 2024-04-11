@@ -43,9 +43,9 @@ public class ScoresService(
         }
         var scoreBoard = await GetScoreboardFromRepository(gameId, cancellationToken);
         await daprClient.SaveStateAsync(
-            StateStoreName, 
-            CacheName.GameScoreBoard(gameId), 
-            scoreBoard, 
+            StateStoreName,
+            CacheName.GameScoreBoard(gameId),
+            scoreBoard,
             metadata: defaultMetadata,
             cancellationToken: cancellationToken);
         return scoreBoard;
@@ -81,7 +81,7 @@ public class ScoresService(
     {
         if (dto.Scores.Any())
         {
-            var scores = dto.Scores.Select(s => s.Score).ToList();
+            var scores = dto.Scores.Select(s => new SimpleScoreDto(s.UniqueId, s.Score)).ToList();
             var playerId = dto.Scores.First().PlayerId;
 
             var message = new RealtimeEvent<PlayerIntermediateScoreDto>
