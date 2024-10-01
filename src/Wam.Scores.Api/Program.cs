@@ -16,13 +16,14 @@ try
     builder.Configuration.AddAzureAppConfiguration(options =>
     {
         var appConfigurationUrl = builder.Configuration.GetRequiredValue("AzureAppConfiguration");
+        Console.WriteLine($"Configuring service using Azure App Configuration {appConfigurationUrl}");
         options.Connect(new Uri(appConfigurationUrl), azureCredential)
             .UseFeatureFlags();
     });
 }
 catch (Exception ex)
 {
-    throw new Exception("Failed to configure the Whack-A-Mole Users service, Azure App Configuration failed", ex);
+    throw new Exception("Failed to configure the Whack-A-Mole Scores service, Azure App Configuration failed", ex);
 }
 // Add services to the container.
 
