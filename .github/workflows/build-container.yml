@@ -101,7 +101,7 @@ jobs:
 
   prod-deployment:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [versionize]
+    needs: [build, publish-bicep, versionize]
     runs-on: ubuntu-latest
     steps:
       - name: Download Artifact
