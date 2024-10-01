@@ -1,4 +1,3 @@
-using Azure.Identity;
 using Wam.Core.Authentication;
 using Wam.Core.Authentication.Swagger;
 using Wam.Core.Configuration;
@@ -11,7 +10,7 @@ using Wam.Scores.Services;
 var corsPolicyName = "DefaultCors";
 var builder = WebApplication.CreateBuilder(args);
 
-var azureCredential = new AzureCliCredential();
+var azureCredential = CloudIdentity.GetCloudIdentity();
 try
 {
     builder.Configuration.AddAzureAppConfiguration(options =>
