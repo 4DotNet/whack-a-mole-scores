@@ -35,10 +35,12 @@ resource storageAccountTableService 'Microsoft.Storage/storageAccounts/tableServ
   name: 'default'
   parent: storageAccount
 }
-resource storageAccountTable 'Microsoft.Storage/storageAccounts/tableServices/tables@2021-09-01' = [for table in storageAccountTables: {
-  name: table
-  parent: storageAccountTableService
-}]
+resource storageAccountTable 'Microsoft.Storage/storageAccounts/tableServices/tables@2021-09-01' = [
+  for table in storageAccountTables: {
+    name: table
+    parent: storageAccountTableService
+  }
+]
 
 module storageAccountConfigurationValue 'configuration-value.bicep' = {
   name: 'storageAccountConfigurationValue'
@@ -85,8 +87,8 @@ resource apiContainerApp 'Microsoft.App/containerApps@2023-08-01-preview' = {
         corsPolicy: {
           allowedOrigins: corsHostnames
           allowCredentials: true
-          allowedHeaders: [ '*' ]
-          allowedMethods: [ '*' ]
+          allowedHeaders: ['*']
+          allowedMethods: ['*']
           maxAge: 0
         }
       }
@@ -125,7 +127,6 @@ resource apiContainerApp 'Microsoft.App/containerApps@2023-08-01-preview' = {
               value: appConfiguration.properties.endpoint
             }
           ]
-
         }
       ]
       scale: {
