@@ -1,3 +1,4 @@
+using Azure.Identity;
 using Wam.Core.Authentication;
 using Wam.Core.Authentication.Swagger;
 using Wam.Core.Configuration;
@@ -10,7 +11,7 @@ using Wam.Scores.Services;
 var corsPolicyName = "DefaultCors";
 var builder = WebApplication.CreateBuilder(args);
 
-var azureCredential = CloudIdentity.GetCloudIdentity();
+var azureCredential = new AzureCliCredential();
 try
 {
     builder.Configuration.AddAzureAppConfiguration(options =>
@@ -27,13 +28,11 @@ catch (Exception ex)
 }
 // Add services to the container.
 
-builder.Services.AddHttpClient<IGamesService, GamesService>()
-    .AddStandardResilienceHandler();
-
-
 builder.Services
     .AddWamCoreConfiguration(builder.Configuration, daprAppId: nameof(ServicesConfiguration.ScoresService))
     .AddWamScoresModel();
+builder.Services.AddHttpClient<IGamesService, GamesService>()
+    .AddStandardResilienceHandler();
 
 builder.Services.AddCors(options =>
 {
