@@ -16,7 +16,8 @@ public class ScoresRepository : IScoresRepository
     private readonly TableClient _tableClient;
 
 
-    public async Task<ScoreBoardOverviewDto> GetScoreBoardOverviewAsync(Guid gameId, GameDetailsDto? gameDetails, CancellationToken cancellationToken)
+    public async Task<ScoreBoardOverviewDto> GetScoreBoardOverviewAsync(Guid gameId, GameDetailsDto? gameDetails,
+        CancellationToken cancellationToken)
     {
         var query = _tableClient.QueryAsync<ScoreEntity>($"{nameof(ScoreEntity.PartitionKey)} eq '{gameId}'");
         var allScores = new List<ScoreEntity>();
@@ -27,7 +28,8 @@ public class ScoresRepository : IScoresRepository
 
         var players = new List<ScoreBoardPlayerDto>();
 
-        var groupedScores = allScores.GroupBy(se => se.PlayerId, (key, group) => new { PlayerId = key, Scores = group.ToList() });
+        var groupedScores = allScores.GroupBy(se => se.PlayerId,
+            (key, group) => new { PlayerId = key, Scores = group.ToList() });
         foreach (var groupedScore in groupedScores)
         {
             var player = gameDetails?.Players.FirstOrDefault(p => p.Id == groupedScore.PlayerId);
@@ -38,7 +40,8 @@ public class ScoresRepository : IScoresRepository
                 groupedScore.Scores.Select(s => new ScoreBoardPlayerScoreDto(s.RowKey, s.Score)).ToList()));
         }
 
-        return new ScoreBoardOverviewDto(gameId, players.OrderBy(plyr => plyr.AverageScore).ToList());
+        return new ScoreBoardOverviewDto(gameId,
+            players.Where(plyr => plyr.ScoreCount >= 50).OrderBy(plyr => plyr.AverageScore).ToList());
     }
 
     public async Task<ScorePersistenseResultDto> StoreScores(ScoreCreateDto dto, CancellationToken cancellationToken)
